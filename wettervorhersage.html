@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wettervorhersage</title>
+<link rel="icon" href="https://openweathermap.org/img/wn/02d@2x.png">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
+<style>
+p {
+  color: white;
+  font-family: sans-serif;
+}
+  
+.collapsible {
+  background-color: #383838;
+  color: white;
+  cursor: pointer;
+  padding: 18px;
+  width: 100%;
+  border: none;
+  text-align: left;
+  outline: none;
+  font-size: 15px;
+  font-family: sans-serif;
+}
+
+.active, .collapsible:hover {
+  background-color: #555;
+}
+
+.collapsible:after {
+  content: '\002B';
+  color: white;
+  font-weight: bold;
+  float: right;
+  margin-left: 5px;
+}
+
+.active:after {
+  content: "\2212";
+}
+
+.content {
+  padding: 0 18px;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease-out;
+  background-color: #383838;
+}
+
+#dropdown button {
+  column-count: 2;
+  font-family: "Helvetica", sans-serif;
+  font-size: 14px;
+  background-color: #555;
+  color: #fff;
+  width: 414.8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  border: None;
+  padding: 7px;
+  cursor: pointer;
+}
+
+#dropdown button:hover {
+  background-color: #666;
+}
+
+#dropdown button:focus {
+  outline: none;
+  background-color: #666;
+}
+
+#dropdown {
+  position: absolute;
+  z-index: 1;
+}
+
+.container {
+  display: flex;
+  justify-content: center;
+  position: relative;
+}
+
+input {
+  font-family: "Helvetica", sans-serif;
+  font-size: 14px;
+  background-color: #555;
+  color: #fff;
+  width: 414.8px;
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
+  height: 30px;
+  padding-left: 13px;
+  border: None;
+  display: block; 
+  margin-right: auto; 
+  margin-left: auto;
+}
+
+#currentLocation {
+  position: absolute;
+  left: 0;
+  height: 30px;
+  background-color: #383838;
+  color: #fff;
+  left: calc(50% - 414.8px / 2 - 30px);
+  border: None;
+  cursor: pointer;
+}
+
+#currentLocation:hover {
+    color: lightgray;
+}
+
+input:focus {
+  outline: none;
+}
+
+[type="search"]::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23777'><path d='M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z'/></svg>");
+  height: 20px;
+  width: 20px;
+}
+
+[type="search"]::-webkit-search-cancel-button:hover {
+  cursor: pointer;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'><path d='M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z'/></svg>");
+}
+
+body {
+  background-color: #383838;
+}
+
+#ecmwf_ifs04 {
+  background-color: #383838;
+  padding-left: 13px;
+  padding-right: 13px;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  border-radius: 16px;
+  border: 1px solid gray;
+  cursor: pointer;
+  font-family: "Helvetica", sans-serif;
+  font-size: 14px;
+  color: white;
+  margin: 2px;
+  margin-left: 16px;
+}
+
+#ecmwf_ifs04:hover {
+  background-color: #555;
+}
+
+#gfs_seamless {
+  background-color: #383838;
+  padding-left: 13px;
+  padding-right: 13px;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  border-radius: 16px;
+  border: 1px solid gray;
+  cursor: pointer;
+  font-family: "Helvetica", sans-serif;
+  font-size: 14px;
+  color: white;
+  margin: 2px;
+}
+
+#gfs_seamless:hover {
+  background-color: #555;
+}
+
+#icon_seamless {
+  background-color: #383838;
+  padding-left: 13px;
+  padding-right: 13px;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  border-radius: 16px;
+  border: 1px solid gray;
+  cursor: pointer;
+  font-family: "Helvetica", sans-serif;
+  font-size: 14px;
+  color: white;
+  margin: 2px;
+}
+
+#icon_seamless:hover {
+  background-color: #555;
+}
+
+#line {
+  display: block;
+  content: "";
+  margin-top: 1em;
+  width: 100%;
+}
+
+#results-container.loader {
+  border: 8px solid #f3f3f3; /* Hellgrau */
+  border-top: 8px solid #666; /* Blau */
+  border-radius: 50%;
+  width: 25px;
+  height: 25px;
+  animation: spin 2s linear infinite;
+  display: block; 
+  margin-top: 20px;
+  margin-right: auto; 
+  margin-left: auto;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+</style>
+</head>
+<body>
+<div class="container">
+<button id="currentLocation" class="fas" onclick="getLocation()">&#xf124;</button>
+<input type="search" id="location" placeholder="Ort" autofocus="autofocus" oninput="search_location()" onclick="search_location()">
+</div>
+<div id="dropdown" style="display: none;"></div>
+<br>
+<div id="models" style="display: none;"></div>
+<br id="line">
+<div id="results-container"></div>
+<script>
+    window.onload = function() {
+        var input = document.querySelector('input');
+        var dropdown = document.querySelector('#dropdown');
+        
+        function updateDropdown() {
+            dropdown.style.width = getComputedStyle(input).width;
+            dropdown.style.left = input.getBoundingClientRect().left + 'px';
+        }
+        
+        updateDropdown();
+        
+        window.addEventListener('resize', updateDropdown);
+
+        var observer = new MutationObserver(updateDropdown);
+
+        observer.observe(input, { attributes: true, characterData: true });
+
+        document.getElementById('results-container').classList.add('loader');
+        fetch('https://api.ipify.org?format=json')
+            .then(response => response.json())
+            .then(data => {
+                const ip = data.ip;
+                return fetch(`http://ip-api.com/json/${ip}`);
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.city != undefined) {
+                    handle_click(data.lat, data.lon, data.city, "ecmwf_ifs04", 10)
+                } else {
+                    handle_click(data.lat, data.lon, "", "ecmwf_ifs04", 10)
+                }
+            })
+            .catch(error => console.error('Error:', error));
+    }
+
+    var location_input = document.getElementById("location"); 
+    location_input.addEventListener("keydown", function (event) { 
+        if (event.code === "Enter") { 
+            search(); 
+        } 
+    });
+    const options = {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0,
+    };
+    function success(pos) {
+        const crd = pos.coords;
+        let geoURL = `https://geocode.maps.co/reverse?lat=${crd.latitude}&lon=${crd.longitude}&api_key=65cdd73314b38426571544ogv768826`
+        fetch(geoURL)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            let city = data.address.town
+            if (city != undefined) {
+                handle_click(crd.latitude, crd.longitude, city, "ecmwf_ifs04", 10)
+            } else {
+                handle_click(crd.latitude, crd.longitude, "", "ecmwf_ifs04", 10)
+            }
+        })
+    }
+
+    function error(err) {
+        console.warn(`ERROR (${err.code}): ${err.message}`);
+        alert(err.message)
+    }
+    function getLocation() {
+        document.getElementById("results-container").innerHTML = "";
+        document.getElementById('results-container').classList.add('loader');
+        navigator.geolocation.getCurrentPosition(success, error, options);
+    }
+    function search() {
+        document.getElementById('results-container').classList.add('loader');
+        let input_val = document.getElementById("location").value;
+        let url = `https://geocoding-api.open-meteo.com/v1/search?name=${input_val}&count=1&language=de&format=json`;
+        fetch(url)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            handle_click(data.results[0].latitude, data.results[0].longitude, data.results[0].name, `ecmwf_ifs04`, `10`);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    }
+    var latitude;
+    var longitude;
+    var input_city;
+    function search_location() {
+        let input_val = document.getElementById("location").value;
+        var input = document.getElementById("location");
+        if (input_val.length >= 2) {
+            let url = `https://geocoding-api.open-meteo.com/v1/search?name=${input_val}&count=5&language=de&format=json`;
+            fetch(url)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    let dropdown = document.getElementById("dropdown");
+                    dropdown.innerHTML = ""; // Clear previous results
+                    dropdown.style.display = "block"; // Show dropdown
+                    if (Object.keys(data).length > 1) {
+                        input.style.borderBottomLeftRadius = "0px"
+                        input.style.borderBottomRightRadius = "0px"
+                    } else {
+                        input.style.borderBottomLeftRadius = "12px"
+                        input.style.borderBottomRightRadius = "12px"
+                    }
+                    for (let i = 0; i < Object.keys(data.results).length; i++) {
+                        let option = document.createElement("button");
+                        if (i == Object.keys(data.results).length-1) {
+                            option.style.borderBottomLeftRadius = "12px"
+                            option.style.borderBottomRightRadius = "12px"
+                        }
+                        if (i == 0) {
+                            option.style.borderTop = "1px solid gray"
+                        }
+                        let name = data.results[i].name;
+                        let country = data.results[i].country || data.results[i].country_code;
+                        let admin1 = data.results[i].admin1;
+                        let elevation = data.results[i].elevation;
+
+                        let text = name;
+                        if (admin1) {
+                            text += ", " + admin1;
+                        }
+                        if (country) {
+                            text += ", " + country;
+                        }
+                        if (elevation && elevation != "9999") {
+                            text += " (" + elevation + " m. ü. M.)";
+                        }
+
+                        option.textContent = text;
+
+                        option.onclick = function() {
+                            document.getElementById('results-container').classList.add('loader');
+                            handle_click(data.results[i].latitude, data.results[i].longitude, data.results[i].name, `ecmwf_ifs04`, `10`);
+                        };
+                        dropdown.appendChild(option);
+                        const options = document.querySelectorAll('#dropdown > button');
+                        let currentIndex = -1;
+
+                        // Eventlistener für die Pfeiltasten
+                        document.addEventListener('keydown', (event) => {
+                            if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
+                            event.preventDefault(); // Verhindert das Scrollen der Seite
+                            if (event.key === 'ArrowUp') {
+                                currentIndex = (currentIndex - 1 + options.length) % options.length;
+                            } else {
+                                currentIndex = (currentIndex + 1) % options.length;
+                            }
+                            options[currentIndex].focus();
+                            }
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        } else {
+            dropdown.innerHTML = "";
+            document.getElementById("dropdown").style.display = "none";
+            input.style.borderBottomLeftRadius = "12px"
+            input.style.borderBottomRightRadius = "12px"
+        }
+    };
+
+    function model(event) {
+        var chosen_model = event.target.id;
+        let future_days;
+        if (chosen_model == "ecmwf_ifs04") {
+            future_days = `10`
+        } else if (chosen_model == "gfs_seamless") {
+            future_days = `16`
+        } else if (chosen_model == "icon_seamless") {
+            future_days = `8`
+        }
+        handle_click(latitude, longitude, input_city, chosen_model, future_days)
+    };
+
+    function handle_click(lat, lon, city, w_model, future_days) {
+        latitude = lat;
+        longitude = lon;
+        input_city = city;
+        document.getElementById("results-container").innerHTML = "";
+        document.getElementById("dropdown").innerHTML = "";
+        var input = document.getElementById("location");
+        input.value = city
+        input.style.borderBottomLeftRadius = "12px"
+        input.style.borderBottomRightRadius = "12px"
+
+        const model_div = document.getElementById("models");
+        model_div.innerHTML = ``;
+        
+        model_div.style.display = "block"
+        const ecmwf_button = document.createElement("button")
+        ecmwf_button.id = "ecmwf_ifs04"
+        ecmwf_button.innerHTML = `ECMWF`
+        ecmwf_button.onclick = function() {
+            model(event);
+        };
+        model_div.append(ecmwf_button)
+        
+        const gfs_button = document.createElement("button")
+        gfs_button.id = "gfs_seamless"
+        gfs_button.innerHTML = `GFS`
+        gfs_button.onclick = function() {
+            model(event);
+        };
+        model_div.append(gfs_button)
+
+        model_div.style.display = "block"
+        const icon_button = document.createElement("button")
+        icon_button.id = "icon_seamless"
+        icon_button.innerHTML = `ICON`
+        icon_button.onclick = function() {
+            model(event);
+        };
+        model_div.append(icon_button)
+
+        if (w_model == "ecmwf_ifs04") {
+            ecmwf_button.style.backgroundColor = "#666"
+        } else if (w_model == "gfs_seamless") {
+            gfs_button.style.backgroundColor = "#666"
+        } else if (w_model == "icon_seamless") {
+            icon_button.style.backgroundColor = "#666"
+        }
+
+        document.getElementById("line").style.borderTop = "1px solid gray";
+        
+        let url = `https://api.open-meteo.com/v1/forecast?latitude=` + lat + `&longitude=` + lon + `&hourly=temperature_2m,relative_humidity_2m,dew_point_2m,precipitation,rain,snowfall,weather_code,pressure_msl,cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high,wind_speed_10m,wind_direction_10m&daily=temperature_2m_max,temperature_2m_min,weather_code,precipitation_sum&forecast_days=` + future_days + `&models=` + w_model;
+
+        fetch(url)
+          .then(response => response.json())
+          .then(data => {
+            var temperature_2m = data.hourly.temperature_2m;
+            var relative_humidity_2m = data.hourly.relative_humidity_2m;
+            var dew_point_2m = data.hourly.dew_point_2m;
+            var precipitation = data.hourly.precipitation;
+            var rain = data.hourly.rain;
+            var snowfall = data.hourly.snowfall;
+            var weather_code = data.hourly.weather_code;
+            var pressure_msl = data.hourly.pressure_msl;
+            var cloud_cover = data.hourly.cloud_cover;
+            var cloud_cover_low = data.hourly.cloud_cover_low;
+            var cloud_cover_mid = data.hourly.cloud_cover_mid;
+            var cloud_cover_high = data.hourly.cloud_cover_high;
+            var wind_speed_10m = data.hourly.wind_speed_10m;
+            var wind_direction_10m = data.hourly.wind_direction_10m;
+            var temperature_2m_max = data.daily.temperature_2m_max;
+            var temperature_2m_min = data.daily.temperature_2m_min;
+            var weather_code_daily = data.daily.weather_code;
+            var precipitation_day = data.daily.precipitation_sum;
+            var date_original = data.daily.time;
+            var date = [];
+            for (let i = 0; i < date_original.length; i++) {
+                const [year, month, day] = date_original[i].split('-');
+                date.push(`${day}.${month}.${year}`);
+              
+            };
+            var time_default = data.hourly.time;
+            var time = [];
+            var symbols_daily = [];
+            var symbols = [];
+            for (var i = 0; i < time_default.length; i++) {
+                time.push(time_default[i].substring(11)+" Uhr");
+                if (weather_code[i] == 0) {
+                    symbols.push("https://openweathermap.org/img/wn/01d@2x.png");
+                } else if (weather_code[i] == 1 || weather_code[i] == 2) {
+                    symbols.push("https://openweathermap.org/img/wn/02d@2x.png");
+                } else if (weather_code[i] == 3) {
+                    symbols.push("https://openweathermap.org/img/wn/03d@2x.png");
+                } else if (weather_code[i] == 55 || weather_code[i] == 57 || weather_code[i] == 63 || weather_code[i] == 65 || weather_code[i] == 67) {
+                    symbols.push("https://openweathermap.org/img/wn/09d@2x.png");
+                } else if (weather_code[i] == 51 || weather_code[i] == 53 || weather_code[i] == 56 || weather_code[i] == 61 || weather_code[i] == 66 || weather_code[i] == 80 || weather_code[i] == 81 || weather_code[i] == 82) {
+                    symbols.push("https://openweathermap.org/img/wn/10d@2x.png");
+                } else if (weather_code[i] == 95 || weather_code[i] == 96 || weather_code[i] == 99) {
+                    symbols.push("https://openweathermap.org/img/wn/11d@2x.png");
+                } else if (weather_code[i] == 71 || weather_code[i] == 73 || weather_code[i] == 75 || weather_code[i] == 77 || weather_code[i] == 85 || weather_code[i] == 86) {
+                    symbols.push("https://openweathermap.org/img/wn/13d@2x.png");
+                } else if (weather_code[i] == 45 || weather_code[i] == 48) {
+                    symbols.push("https://openweathermap.org/img/wn/50d@2x.png");
+                }
+            };
+
+            for (var i = 0; i < weather_code_daily.length; i++) {
+                if (weather_code_daily[i] == 0) {
+                    symbols_daily.push("https://openweathermap.org/img/wn/01d@2x.png");
+                } else if (weather_code_daily[i] == 1 || weather_code_daily[i] == 2) {
+                    symbols_daily.push("https://openweathermap.org/img/wn/02d@2x.png");
+                } else if (weather_code_daily[i] == 3) {
+                    symbols_daily.push("https://openweathermap.org/img/wn/03d@2x.png");
+                } else if (weather_code_daily[i] == 55 || weather_code_daily[i] == 57 || weather_code_daily[i] == 63 || weather_code_daily[i] == 65 || weather_code_daily[i] == 67) {
+                    symbols_daily.push("https://openweathermap.org/img/wn/09d@2x.png");
+                } else if (weather_code_daily[i] == 51 || weather_code_daily[i] == 53 || weather_code_daily[i] == 56 || weather_code_daily[i] == 61 || weather_code_daily[i] == 66 || weather_code_daily[i] == 80 || weather_code_daily[i] == 81 || weather_code_daily[i] == 82) {
+                    symbols_daily.push("https://openweathermap.org/img/wn/10d@2x.png");
+                } else if (weather_code_daily[i] == 95 || weather_code_daily[i] == 96 || weather_code_daily[i] == 99) {
+                    symbols_daily.push("https://openweathermap.org/img/wn/11d@2x.png");
+                } else if (weather_code_daily[i] == 71 || weather_code_daily[i] == 73 || weather_code_daily[i] == 75 || weather_code_daily[i] == 77 || weather_code_daily[i] == 85 || weather_code_daily[i] == 86) {
+                    symbols_daily.push("https://openweathermap.org/img/wn/13d@2x.png");
+                } else if (weather_code_daily[i] == 45 || weather_code_daily[i] == 48) {
+                    symbols_daily.push("https://openweathermap.org/img/wn/50d@2x.png");
+                }
+            };
+            document.getElementById('results-container').classList.remove('loader');
+            for (let i = 0; i < Number(future_days); i++) {
+                if (precipitation_day[i] == null) {
+                    break;
+                }
+                const button = document.createElement("button");
+                button.className = "collapsible";
+                button.style.display = 'flex';
+                button.style.alignItems = 'center';
+                button.style.justifyContent = 'space-between';
+
+                const div = document.createElement("div");
+                div.style.display = 'flex';
+                div.style.alignItems = 'center';
+
+                const dateText = document.createElement("span")
+                dateText.innerHTML = `<p style="font-weight:bold">${date[i]} </p>`;
+                div.appendChild(dateText);
+                
+                const img = document.createElement("img");
+                img.src = symbols_daily[i];
+                img.style.height = '50px';
+                div.appendChild(img);
+
+                const measurements = document.createElement("span")
+                measurements.innerHTML = ` ${temperature_2m_max[i]}°C | ${temperature_2m_min[i]}°C&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#X2602;: ${precipitation_day[i]}mm`;
+                div.appendChild(measurements);
+
+                button.appendChild(div);
+
+                document.getElementById("results-container").appendChild(button);
+
+                const contentDiv = document.createElement("div");
+                contentDiv.className = "content";
+                document.getElementById("results-container").appendChild(contentDiv);
+
+                contentDiv.innerHTML = ``;
+
+                for (let j = 0; j < 24; j++) {
+                    contentDiv.innerHTML += `<p style="display:flex; align-items:center;"><strong>${time[i * 24 + j]}</strong><img src="${symbols[i * 24 + j]}" width="50">&#x1F321;: ${temperature_2m[i * 24 + j]}°C&nbsp;&nbsp;&nbsp;Taupunkt: ${dew_point_2m[i * 24 + j]}°C&nbsp;&nbsp;&nbsp;Luftfeuchtigkeit: ${relative_humidity_2m[i * 24 + j]}%&nbsp;&nbsp;&nbsp;&#X2602;: ${precipitation[i * 24 + j]}mm&nbsp;&nbsp;&nbsp;&#X1f324;: ${cloud_cover[i * 24 + j]}%&nbsp;&nbsp;&nbsp;Luftdruck: ${pressure_msl[i * 24 + j]}hPa&nbsp;&nbsp;&nbsp;&#x0F04;: ${wind_speed_10m[i * 24 + j]}km/h | ${wind_direction_10m[i * 24 + j]}°</p>`
+                }
+
+
+                button.addEventListener("click", function() {
+                    this.classList.toggle("active");
+                    var content = this.nextElementSibling;
+                    if (content.style.maxHeight){
+                        content.style.maxHeight = null;
+                    } else {
+                        content.style.maxHeight = content.scrollHeight + "px";
+                    }
+                });
+            }
+          })
+        
+    }
+</script>
+<script src='https://kit.fontawesome.com/a076d05399.js' crossorigin='anonymous'></script>
+</body>
+</html>
